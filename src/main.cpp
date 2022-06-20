@@ -19,6 +19,7 @@ public:
 
 private:
    GLFWwindow* window;
+   VkInstance  instance;
 
    void initWindow() {
       // Initialize GLFW library
@@ -35,7 +36,46 @@ private:
    }
 
    void initVulkan() {
+      createInstance();
+   }
+   
+   // Create an instance (connects application to vulkan library)
+   void createInstance() {
 
+      // Create a struct with information about our application
+      VkApplicationInfo appInfo{};
+      appInfo.pApplicationName = "Hello Triangle";
+      appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+      appInfo.pEngineName = "No Engine";
+      appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+      appInfo.apiVersion = VK_API_VERSION_1_0;
+
+      // Create instance info struct from application info struct
+      VkInstanceCreateInfo createInfo{};
+      createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+      createInfo.pApplicationInfo = &appInfo;
+
+      /// Add glfw extension information to instance info struct
+      // Let GLFW tell us which extensions it needs
+      uint32_t glfwExtensionCount = 0;
+      const char** glfwExtensions;
+      glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+      // Insert the response into the instance info struct
+      createInfo.enabledExtensionCount = glfwExtensionCount;
+      createInfo.ppEnabledExtensionNames = glfwExtensions;
+
+
+      /// Tell which global validation layers to enable
+      createInfo.enabledLayerCount = 0;
+
+      // Create Instance (second parameter is for custom allocator callbacks)
+      VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
+
+      // Verify that the instance was created successfully
+      if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+         throw std::runtime_error("failed to create vulkan instance!");
+      }
    }
 
    void mainLoop() {
